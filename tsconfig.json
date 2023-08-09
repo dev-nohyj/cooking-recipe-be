@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "types": [
+      "node"
+    ],
+    "module": "commonjs",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "declaration": true,
+    "strict": true,
+    "target": "es6",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "noImplicitAny": false,
+    "baseUrl": "./",
+    "lib": [
+      "ESNext"
+    ],
+    "esModuleInterop": true,
+    "noUnusedLocals": true,
+    "strictPropertyInitialization": false,
+    "typeRoots": [
+      "./src/types",
+      "./node_modules/@types"
+    ]
+  }
+}

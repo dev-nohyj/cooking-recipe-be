@@ -3,7 +3,7 @@ import { arrayNotEmpty, isNotEmptyObject } from 'class-validator';
 import { Request } from 'express';
 import { Observable } from 'rxjs';
 import { CustomError } from '../error/custom.error';
-import { customErrorLabel } from 'src/const/labels/error';
+import { customErrorLabel } from 'src/asset/labels/error';
 
 @Injectable()
 export class CheckInvalidDataTypeInterceptor implements NestInterceptor {

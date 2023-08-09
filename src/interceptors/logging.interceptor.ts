@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { Logger } from 'src/config/logger';
 import { CustomError } from '../error/custom.error';
-import { customErrorLabel } from 'src/const/labels/error';
+import { customErrorLabel } from 'src/asset/labels/error';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {

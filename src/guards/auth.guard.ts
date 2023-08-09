@@ -5,8 +5,8 @@ import { Observable } from 'rxjs';
 import { ConfigService } from '@nestjs/config';
 import { clearCookieOption } from 'src/config/session';
 import { CustomError } from '../error/custom.error';
-import { MetadataKey } from '../const/labels/common';
-import { customErrorLabel } from 'src/const/labels/error';
+import { MetadataKey } from '../asset/labels/common';
+import { customErrorLabel } from 'src/asset/labels/error';
 
 /**
  * 데코레이터를 달아두면 권한 없이 모두가 사용

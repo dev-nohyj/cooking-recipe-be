@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
 import { PrismaDatabase } from 'src/prisma/prisma.service';
 import { CustomError } from '../error/custom.error';
-import { customErrorLabel } from 'src/const/labels/error';
+import { customErrorLabel } from 'src/asset/labels/error';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {

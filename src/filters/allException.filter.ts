@@ -16,15 +16,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
         try {
             const { body, method, params, query } = req;
-            if (body?.password) {
-                delete body.password;
-            }
-            if (body?.oldPassword) {
-                delete body.oldPassword;
-            }
-            if (body?.newPassword) {
-                delete body.newPassword;
-            }
 
             if (
                 this.configService.get('NODE_ENV') === 'dev' &&

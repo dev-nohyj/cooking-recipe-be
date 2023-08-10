@@ -9,6 +9,11 @@ export const customErrorLabel = {
         customError: 'INVALID_DATA_TYPE',
         clientMsg: '올바르지 않은 데이터 형식입니다.',
     },
+    DELETE_USER_FAILURE: {
+        code: 111,
+        customError: 'DELETE_USER_FAILURE',
+        clientMsg: '회원 탈퇴에 실패했습니다. 다시 시도해 주세요.',
+    },
     BAD_REQUEST: {
         code: 400,
         customError: 'BAD_REQUEST',

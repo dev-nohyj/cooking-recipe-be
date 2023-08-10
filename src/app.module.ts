@@ -1,3 +1,4 @@
+import { AuthModule } from './modules/auth/auth.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './prisma/database.module';
@@ -5,6 +6,7 @@ import { RedisModule } from '@nestjs-modules/ioredis';
 
 @Module({
     imports: [
+        AuthModule,
         // configuration module
         ConfigModule.forRoot({ isGlobal: true }),
         RedisModule.forRoot({

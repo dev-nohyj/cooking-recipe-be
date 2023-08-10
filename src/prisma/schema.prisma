@@ -11,6 +11,17 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+model user {
+    id              String   @id @default(uuid()) @db.Char(36)
+    email           String   @unique @db.VarChar(50)
+    nickname        String   @db.VarChar(20)
+    provider        Int      @default(1) @db.UnsignedTinyInt
+    profileImageUrl String?  @db.VarChar(300)
+    introduction    String?  @db.VarChar(100)
+    createdAt       DateTime @default(now()) @db.Timestamp(0)
+    updatedAt       DateTime @default(now()) @db.Timestamp(0)
+}
+
 model errorLog {
     id           BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
     method       String   @db.VarChar(10)

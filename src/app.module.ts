@@ -4,9 +4,12 @@ import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './prisma/database.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
 
+import { AwsModule } from './aws/aws.module';
+
 @Module({
     imports: [
         AuthModule,
+        AwsModule,
         // configuration module
         ConfigModule.forRoot({ isGlobal: true }),
         RedisModule.forRoot({

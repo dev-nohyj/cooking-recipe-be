@@ -1,6 +1,6 @@
 export enum ApiTagLabel {
-    auth = '유저 인가 처리',
-    userProfile = '유저 프로필',
+    auth = '유저',
+    awsS3 = 'AWSS3',
 }
 
 export enum MetadataKey {
@@ -10,4 +10,8 @@ export enum MetadataKey {
 export enum ProviderLabel {
     google = 1,
     kakao = 2,
+}
+
+export enum PresignedUrlTypeLabel {
+    userProfile = 1,
 }

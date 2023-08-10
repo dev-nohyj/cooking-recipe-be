@@ -1,4 +1,17 @@
-import { Controller, Delete, Get, HttpStatus, Post, Redirect, Req, Res, Session, UseGuards } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    HttpStatus,
+    Post,
+    Put,
+    Redirect,
+    Req,
+    Res,
+    Session,
+    UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request, Response } from 'express';
 import { NoAuth } from 'src/decorators/noAuth.decorators';
@@ -8,6 +21,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { ApiTagLabel } from 'src/asset/labels/common';
 import { AuthService } from './services/auth.service';
 import { CustomSession } from 'express-session';
+import { ModifyProfileRes } from './dtos/modifyProfileRes';
+import { ModifyProfileArgs } from './dtos/modifyProfileArgs';
 
 @ApiTags(ApiTagLabel.auth)
 @Controller('auth')
@@ -67,8 +82,17 @@ export class AuthController {
     @SwaggerReply({
         summary: '회원 탈퇴',
     })
-    @Delete('delete')
+    @Delete('deleteUser')
     deleteUser(@Session() session: CustomSession, @Res({ passthrough: true }) res: Response) {
         return this.authService.deleteUser(session, res);
+    }
+
+    @SwaggerReply({
+        summary: '유저 정보 수정',
+        type: ModifyProfileRes,
+    })
+    @Put('modifyProfile')
+    modifyProfile(@Body() modifyProfileArgs: ModifyProfileArgs, @Session() session: CustomSession) {
+        return this.authService.modifyProfile(modifyProfileArgs, session);
     }
 }

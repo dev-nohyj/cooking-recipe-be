@@ -14,6 +14,16 @@ export const customErrorLabel = {
         customError: 'DELETE_USER_FAILURE',
         clientMsg: '회원 탈퇴에 실패했습니다. 다시 시도해 주세요.',
     },
+    MODIFY_USER_FAILURE: {
+        code: 112,
+        customError: 'MODIFY_USER_FAILURE',
+        clientMsg: '정보 수정에 실패했습니다. 다시 시도해 주세요.',
+    },
+    NO_EXISTING_USER: {
+        code: 113,
+        customError: 'NO_EXISTING_USER',
+        clientMsg: '오류가 발생했습니다! 다시 시도해 주세요.',
+    },
     BAD_REQUEST: {
         code: 400,
         customError: 'BAD_REQUEST',

@@ -11,6 +11,8 @@ import { customErrorLabel } from 'src/asset/labels/error';
 import { clearCookieOption } from 'src/config/session';
 import { ProviderLabel } from 'src/asset/labels/common';
 import axios from 'axios';
+import { ModifyProfileArgs } from '../dtos/modifyProfileArgs';
+import { ModifyProfileRes } from '../dtos/modifyProfileRes';
 
 @Injectable()
 export class AuthService {
@@ -153,6 +155,33 @@ export class AuthService {
             return true;
         } catch (err) {
             throw new CustomError({ customError: customErrorLabel.SYSTEM_ERROR.customError });
+        }
+    }
+
+    async modifyProfile(modifyProfileArgs: ModifyProfileArgs, session: CustomSession): Promise<ModifyProfileRes> {
+        const { profileImageUrl, nickname, introduction } = modifyProfileArgs;
+        const user = await this.prismaDatabase.user.findUnique({ where: { id: session.userId } });
+
+        if (!user) {
+            throw new CustomError({ customError: customErrorLabel.NO_EXISTING_USER.customError });
+        }
+        try {
+            const updateUser = await this.prismaDatabase.user.update({
+                where: { id: session.userId },
+                data: {
+                    profileImageUrl,
+                    nickname,
+                    introduction,
+                },
+                select: {
+                    profileImageUrl: true,
+                    nickname: true,
+                    introduction: true,
+                },
+            });
+            return updateUser;
+        } catch (err) {
+            throw new CustomError({ customError: customErrorLabel.MODIFY_USER_FAILURE.customError });
         }
     }
 }

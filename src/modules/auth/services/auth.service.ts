@@ -184,4 +184,13 @@ export class AuthService {
             throw new CustomError({ customError: customErrorLabel.MODIFY_USER_FAILURE.customError });
         }
     }
+
+    async getProfile(userId: string) {
+        try {
+            const user = await this.prismaDatabase.user.findFirstOrThrow({ where: { id: userId } });
+            return user;
+        } catch (err) {
+            throw new CustomError({ customError: customErrorLabel.NO_EXISTING_USER.customError });
+        }
+    }
 }

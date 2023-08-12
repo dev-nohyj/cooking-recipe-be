@@ -23,6 +23,7 @@ import { AuthService } from './services/auth.service';
 import { CustomSession } from 'express-session';
 import { ModifyProfileRes } from './dtos/modifyProfileRes';
 import { ModifyProfileArgs } from './dtos/modifyProfileArgs';
+import { GetProfileRes } from './dtos/getProfileRes';
 
 @ApiTags(ApiTagLabel.auth)
 @Controller('auth')
@@ -94,5 +95,14 @@ export class AuthController {
     @Put('modifyProfile')
     modifyProfile(@Body() modifyProfileArgs: ModifyProfileArgs, @Session() session: CustomSession) {
         return this.authService.modifyProfile(modifyProfileArgs, session);
+    }
+
+    @SwaggerReply({
+        summary: '유저 정보 조회',
+        type: GetProfileRes,
+    })
+    @Get('profile')
+    info(@Session() session: CustomSession) {
+        return this.authService.getProfile(session.userId);
     }
 }

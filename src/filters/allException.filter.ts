@@ -74,7 +74,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
                 message: customErrorLabel.UNKNOWN.clientMsg,
             });
             if (this.configService.get('NODE_ENV') === 'dev') {
-                console.log(`🆘 all Exception Filter error : ${err}`);
+                console.log(`global error :: ${err}`);
             }
         }
     }

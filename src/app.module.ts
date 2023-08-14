@@ -5,9 +5,11 @@ import { DatabaseModule } from './prisma/database.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
 
 import { AwsModule } from './aws/aws.module';
+import { RecipePostModule } from './modules/recipePost/recipepost.module';
 
 @Module({
     imports: [
+        RecipePostModule,
         AuthModule,
         AwsModule,
         // configuration module

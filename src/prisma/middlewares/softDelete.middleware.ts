@@ -11,6 +11,9 @@ export function SoftDeleteMiddlware(params: any, next: any, Prisma: any): Promis
 
             case 'findMany':
             case 'findFirst':
+                if (params.model === 'recipePostComment') {
+                    break;
+                }
                 if (params.args.where !== undefined) {
                     if (params.args.where.deletedAt === undefined) {
                         if (params.args.where['NOT']['deletedAt'] === null) {

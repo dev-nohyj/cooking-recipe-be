@@ -28,7 +28,6 @@ export class RecipePostController {
         summary: '게시물 조회',
     })
     @Get('')
-    @NoAuth()
     getRecipePosts(@Query() getRecipePostsArgs: GetRecipePostsArgs) {
         return this.recipePostService.getRecipePosts(getRecipePostsArgs);
     }

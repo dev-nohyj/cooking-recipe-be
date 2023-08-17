@@ -1,3 +1,4 @@
+import { FoodPostModule } from './modules/foodPost/foodpost.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
@@ -9,6 +10,7 @@ import { RecipePostModule } from './modules/recipePost/recipepost.module';
 
 @Module({
     imports: [
+        FoodPostModule,
         RecipePostModule,
         AuthModule,
         AwsModule,

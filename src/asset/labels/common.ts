@@ -1,6 +1,7 @@
 export enum ApiTagLabel {
     auth = '유저',
     recipePost = '레시피',
+    foodPost = '음식',
     awsS3 = 'AWSS3',
 }
 

@@ -69,6 +69,26 @@ export const customErrorLabel = {
         customError: 'DELETE_COMMENT_FAILURE',
         clientMsg: '댓글 삭제에 실패했습니다.',
     },
+    CREATE_FOOD_POST_FAILURE: {
+        code: 202,
+        customError: 'CREATE_FOOD_POST_FAILURE',
+        clientMsg: '게시물 작성에 실패했습니다.',
+    },
+    DELETE_FOOD_POST_FAILURE: {
+        code: 203,
+        customError: 'DELETE_FOOD_POST_FAILURE',
+        clientMsg: '게시물 삭제에 실패했습니다.',
+    },
+    NO_EXISTING_FOOD_POST: {
+        code: 204,
+        customError: 'NO_EXISTING_FOOD_POST',
+        clientMsg: '게시물이 존재하지 않습니다.',
+    },
+    MODIFY_FOOD_POST_FAILURE: {
+        code: 205,
+        customError: 'MODIFY_FOOD_POST_FAILURE',
+        clientMsg: '게시물이 수정에 실패했습니다.',
+    },
     BAD_REQUEST: {
         code: 400,
         customError: 'BAD_REQUEST',

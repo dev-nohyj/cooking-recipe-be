@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, Session } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, Req, Session } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiTagLabel } from 'src/asset/labels/common';
 import { SwaggerReply } from 'src/decorators/swaggerReply.decorators';
@@ -17,6 +17,7 @@ import {
     GetRecipeCommentListArgs,
     ModifyRecipeCommentArgs,
 } from './dtos/args/RecipeCommentArgs';
+import { Request } from 'express';
 
 @ApiTags(ApiTagLabel.recipePost)
 @Controller('recipe')
@@ -37,8 +38,8 @@ export class RecipePostController {
         summary: '게시물 상세 조회',
     })
     @Get('/detail/:recipePostId')
-    getDetailRecipePost(@Param() { recipePostId }: RecipePostIdArgs) {
-        return this.recipePostService.getDetailRecipePost(recipePostId);
+    getDetailRecipePost(@Req() { clientIp }: Request, @Param() { recipePostId }: RecipePostIdArgs) {
+        return this.recipePostService.getDetailRecipePost(recipePostId, clientIp);
     }
 
     @SwaggerReply({

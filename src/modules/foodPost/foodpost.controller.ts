@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Patch, Post, Put, Query, Session } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, Req, Session } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiTagLabel } from 'src/asset/labels/common';
 import { NoAuth } from 'src/decorators/noAuth.decorators';
@@ -11,6 +11,7 @@ import { GetFoodPostsArgs } from './dtos/args/getFoodPostsArgs';
 import { LikeFoodPostArgs } from './dtos/args/likeFoodPostArgs';
 import { CreateFoodPostArgs } from './dtos/args/createFoodPostArgs';
 import { ModifyFoodPostArgs } from './dtos/args/modifyFoodPostArgs';
+import { Request } from 'express';
 
 @ApiTags(ApiTagLabel.foodPost)
 @Controller('food')
@@ -31,8 +32,8 @@ export class FoodPostController {
         summary: '게시물 상세 조회',
     })
     @Get('/detail/:foodPostId')
-    getDetailFoodPost(@Query() { foodPostId }: FoodPostIdArgs) {
-        return this.foodPostService.getDetailFoodPost(foodPostId);
+    getDetailFoodPost(@Req() { clientIp }: Request, @Param() { foodPostId }: FoodPostIdArgs) {
+        return this.foodPostService.getDetailFoodPost(foodPostId, clientIp);
     }
 
     @SwaggerReply({

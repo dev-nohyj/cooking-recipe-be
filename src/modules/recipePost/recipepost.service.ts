@@ -40,7 +40,7 @@ export class RecipePostService {
         };
     }
 
-    async getDetailRecipePost(recipePostId: number) {
+    async getDetailRecipePost(recipePostId: number, clientIp: string | undefined) {
         const existingPost = await this.prismaDatabase.recipePost.findUnique({
             where: { id: recipePostId },
         });
@@ -48,16 +48,21 @@ export class RecipePostService {
             throw new CustomError({ customError: customErrorLabel.NO_EXISTING_RECIPE_POST.customError });
         }
         const getViewCnt = await this.redis.get(redisPrefix.recipePostViewCount(existingPost.id));
-
-        if (getViewCnt) {
-            const redisViewCnt = JSON.parse(getViewCnt);
-            redisViewCnt.viewCount = redisViewCnt.viewCount + 1;
-            await this.redis.set(redisPrefix.recipePostViewCount(existingPost.id), JSON.stringify(redisViewCnt));
+        const getViewedPost = await this.redis.get(redisPrefix.alreadyViewedRecipe(existingPost.id, clientIp));
+        if (!getViewedPost) {
+            if (getViewCnt) {
+                const redisViewCnt = JSON.parse(getViewCnt);
+                redisViewCnt.viewCount = redisViewCnt.viewCount + 1;
+                await this.redis.set(redisPrefix.recipePostViewCount(existingPost.id), JSON.stringify(redisViewCnt));
+            } else {
+                const redisViewCnt = { viewCount: existingPost.viewCount + 1 };
+                await this.redis.set(redisPrefix.recipePostViewCount(existingPost.id), JSON.stringify(redisViewCnt));
+            }
+            await this.redis.set(redisPrefix.alreadyViewedRecipe(existingPost.id, clientIp), 'viewed', 'EX', 60);
+            return existingPost;
         } else {
-            const redisViewCnt = { viewCount: existingPost.viewCount + 1 };
-            await this.redis.set(redisPrefix.recipePostViewCount(existingPost.id), JSON.stringify(redisViewCnt));
+            return existingPost;
         }
-        return existingPost;
     }
 
     async createRecipePost(createRecipePostArgs: CreateRecipePostArgs, authorId: string) {

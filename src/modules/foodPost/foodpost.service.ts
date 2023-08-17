@@ -15,7 +15,7 @@ export class FoodPostService {
     // @ts-ignore
     constructor(private readonly prismaDatabase: PrismaDatabase, @InjectRedis() private readonly redis: Redis) {}
 
-    async getDetailFoodPost(foodPostId: number) {
+    async getDetailFoodPost(foodPostId: number, clientIp: string | undefined) {
         const existingPost = await this.prismaDatabase.foodPost.findUnique({
             where: { id: foodPostId },
         });
@@ -23,15 +23,21 @@ export class FoodPostService {
             throw new CustomError({ customError: customErrorLabel.NO_EXISTING_FOOD_POST.customError });
         }
         const getViewCnt = await this.redis.get(redisPrefix.foodPostViewCount(existingPost.id));
-        if (getViewCnt) {
-            const redisViewCnt = JSON.parse(getViewCnt);
-            redisViewCnt.viewCount = redisViewCnt.viewCount + 1;
-            await this.redis.set(redisPrefix.foodPostViewCount(existingPost.id), JSON.stringify(redisViewCnt));
+        const getViewedPost = await this.redis.get(redisPrefix.alreadyViewedFood(existingPost.id, clientIp));
+        if (!getViewedPost) {
+            if (getViewCnt) {
+                const redisViewCnt = JSON.parse(getViewCnt);
+                redisViewCnt.viewCount = redisViewCnt.viewCount + 1;
+                await this.redis.set(redisPrefix.foodPostViewCount(existingPost.id), JSON.stringify(redisViewCnt));
+            } else {
+                const redisViewCnt = { viewCount: existingPost.viewCount + 1 };
+                await this.redis.set(redisPrefix.foodPostViewCount(existingPost.id), JSON.stringify(redisViewCnt));
+            }
+            await this.redis.set(redisPrefix.alreadyViewedFood(existingPost.id, clientIp), 'viewed', 'EX', 60);
+            return existingPost;
         } else {
-            const redisViewCnt = { viewCount: existingPost.viewCount + 1 };
-            await this.redis.set(redisPrefix.foodPostViewCount(existingPost.id), JSON.stringify(redisViewCnt));
+            return existingPost;
         }
-        return existingPost;
     }
 
     async getFoodPosts(getFoodPostsArgs: GetFoodPostsArgs) {

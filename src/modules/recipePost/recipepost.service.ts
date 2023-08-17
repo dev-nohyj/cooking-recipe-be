@@ -13,10 +13,13 @@ import {
     GetRecipeCommentListArgs,
     ModifyRecipeCommentArgs,
 } from './dtos/args/RecipeCommentArgs';
+import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
+import { redisPrefix } from 'src/asset/prefix';
 
 @Injectable()
 export class RecipePostService {
-    constructor(private readonly prismaDatabase: PrismaDatabase) {}
+    //@ts-ignore
+    constructor(private readonly prismaDatabase: PrismaDatabase, @InjectRedis() private readonly redis: Redis) {}
 
     async getRecipePosts(getRecipePostsArgs: GetRecipePostsArgs) {
         const { category, size, cursor } = getRecipePostsArgs;
@@ -43,6 +46,16 @@ export class RecipePostService {
         });
         if (!existingPost) {
             throw new CustomError({ customError: customErrorLabel.NO_EXISTING_RECIPE_POST.customError });
+        }
+        const getViewCnt = await this.redis.get(redisPrefix.recipePostViewCount(existingPost.id));
+
+        if (getViewCnt) {
+            const redisViewCnt = JSON.parse(getViewCnt);
+            redisViewCnt.viewCount = redisViewCnt.viewCount + 1;
+            await this.redis.set(redisPrefix.recipePostViewCount(existingPost.id), JSON.stringify(redisViewCnt));
+        } else {
+            const redisViewCnt = { viewCount: existingPost.viewCount + 1 };
+            await this.redis.set(redisPrefix.recipePostViewCount(existingPost.id), JSON.stringify(redisViewCnt));
         }
         return existingPost;
     }
@@ -130,7 +143,7 @@ export class RecipePostService {
             if (!existingPost) {
                 throw new CustomError({ customError: customErrorLabel.NO_EXISTING_RECIPE_POST.customError });
             }
-            if (!existingPost || existingPost.authorId !== userId) {
+            if (existingPost.authorId !== userId) {
                 throw new CustomError({ customError: customErrorLabel.BAD_REQUEST.customError });
             }
 

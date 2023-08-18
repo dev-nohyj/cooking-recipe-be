@@ -13,6 +13,7 @@ import { ProviderLabel } from 'src/asset/labels/common';
 import axios from 'axios';
 import { ModifyProfileArgs } from '../dtos/args/modifyProfileArgs';
 import { ModifyProfileRes } from '../dtos/res/modifyProfileRes';
+import { GetProfileRes } from '../dtos/res/getProfileRes';
 
 @Injectable()
 export class AuthService {
@@ -185,10 +186,11 @@ export class AuthService {
         }
     }
 
-    async getProfile(userId: string) {
+    async getProfile(userId: string | undefined): Promise<GetProfileRes> {
+        if (!userId) return { profile: null };
         try {
             const user = await this.prismaDatabase.user.findFirstOrThrow({ where: { id: userId } });
-            return user;
+            return { profile: user };
         } catch (err) {
             throw new CustomError({ customError: customErrorLabel.NO_EXISTING_USER.customError });
         }

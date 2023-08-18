@@ -97,12 +97,13 @@ export class AuthController {
         return this.authService.modifyProfile(modifyProfileArgs, session);
     }
 
+    @NoAuth()
     @SwaggerReply({
         summary: '유저 정보 조회',
         type: GetProfileRes,
     })
     @Get('profile')
-    info(@Session() session: CustomSession) {
+    getProfile(@Session() session: CustomSession) {
         return this.authService.getProfile(session.userId);
     }
 }

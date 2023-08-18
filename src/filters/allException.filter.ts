@@ -38,8 +38,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
                 errorMessage:
                     customErrorLabel[exception?.reason?.customError as keyof typeof customErrorLabel]?.clientMsg ??
                     'An error occurred on the server.',
-                controller: exception.locationName?.controller ?? null,
-                handler: exception.locationName?.handler ?? null,
+                controller: exception.ctx?.controller ?? null,
+                handler: exception.ctx?.handler ?? null,
                 userId: req.session?.userId ? req.session.userId : null,
                 request: JSON.stringify(body ? body : Object.keys(params).length ? params : query),
                 reason: JSON.stringify(exception?.reason) ?? null,

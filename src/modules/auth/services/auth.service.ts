@@ -11,8 +11,8 @@ import { customErrorLabel } from 'src/asset/labels/error';
 import { clearCookieOption } from 'src/config/session';
 import { ProviderLabel } from 'src/asset/labels/common';
 import axios from 'axios';
-import { ModifyProfileArgs } from '../dtos/modifyProfileArgs';
-import { ModifyProfileRes } from '../dtos/modifyProfileRes';
+import { ModifyProfileArgs } from '../dtos/args/modifyProfileArgs';
+import { ModifyProfileRes } from '../dtos/res/modifyProfileRes';
 
 @Injectable()
 export class AuthService {

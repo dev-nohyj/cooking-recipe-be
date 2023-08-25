@@ -1,9 +1,42 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, IsEnum, IsNotEmpty, IsString, Length, ValidateIf } from 'class-validator';
+import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Length, Min, ValidateIf } from 'class-validator';
 import { customErrorLabel } from 'src/asset/labels/error';
 import { RecipePostCategoryLabel } from 'src/asset/labels/recipePost';
 import { CustomError } from 'src/error/custom.error';
+import { RecipePostIdArgs } from './commonArgs';
+import { LikeTypeLabel } from 'src/asset/labels/common';
+
+export class GetRecipePostsArgs {
+    @ApiProperty({
+        default: 20,
+        description: 'size',
+    })
+    @IsNumber()
+    @IsNotEmpty()
+    @Type(() => Number)
+    size: number;
+
+    @ApiProperty({
+        description: 'cursor (post lastId)',
+        required: false,
+    })
+    @IsOptional()
+    @IsNumber()
+    @Min(1)
+    @IsNotEmpty()
+    @Type(() => Number)
+    cursor: number;
+
+    @ApiProperty({
+        description: '카테고리',
+        required: false,
+    })
+    @IsOptional()
+    @Type(() => Number)
+    @IsEnum(RecipePostCategoryLabel)
+    category: RecipePostCategoryLabel;
+}
 
 export class CreateRecipePostArgs {
     @ApiProperty({
@@ -57,4 +90,24 @@ export class CreateRecipePostArgs {
         return value !== null;
     })
     tags: string[] | null;
+}
+
+export class ModifyRecipePostArgs extends CreateRecipePostArgs {
+    @ApiProperty({
+        default: 1,
+        description: 'id',
+    })
+    @IsNumber()
+    @IsNotEmpty()
+    @Type(() => Number)
+    recipePostId: number;
+}
+
+export class LikeRecipePostArgs extends RecipePostIdArgs {
+    @ApiProperty({
+        default: LikeTypeLabel.like,
+        description: 'like type',
+    })
+    @IsEnum(LikeTypeLabel)
+    likeType: LikeTypeLabel;
 }

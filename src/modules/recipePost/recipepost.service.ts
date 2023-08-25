@@ -3,50 +3,160 @@ import { PrismaDatabase } from 'src/prisma/prisma.service';
 import { CustomError } from 'src/error/custom.error';
 import { customErrorLabel } from 'src/asset/labels/error';
 import { LikeTypeLabel } from 'src/asset/labels/common';
-import { LikeRecipePostRes } from './dtos/res/likeRecipePostRes';
-import { GetRecipePostsArgs } from './dtos/args/getRecipePostsArgs';
-import { CreateRecipePostArgs } from './dtos/args/createRecipePostArgs';
-import { ModifyRecipePostArgs } from './dtos/args/modifyRecipePostArgs';
-import { LikeRecipePostArgs } from './dtos/args/likeRecipePostArgs';
-import {
-    CreateRecipeCommentArgs,
-    GetRecipeCommentListArgs,
-    ModifyRecipeCommentArgs,
-} from './dtos/args/RecipeCommentArgs';
 import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
 import { redisPrefix } from 'src/asset/prefix';
+import {
+    GetRecipeCommentListArgs,
+    ModifyRecipeCommentArgs,
+    CreateRecipeCommentArgs,
+} from './dtos/args/recipeCommentArgs';
+import {
+    GetRecipePostCommentRes,
+    ModifyRecipePostCommentRes,
+    DeleteRecipePostCommentRes,
+    CreateRecipePostCommentRes,
+} from './dtos/res/recipeCommentRes';
+import {
+    GetRecipePostsArgs,
+    ModifyRecipePostArgs,
+    CreateRecipePostArgs,
+    LikeRecipePostArgs,
+} from './dtos/args/recipePostArgs';
+import {
+    GetRecipePostsRes,
+    GetRecipePostDetailRes,
+    LikeRecipePostRes,
+    CreateRecipePostRes,
+    DeleteRecipePostRes,
+} from './dtos/res/recipePostRes';
 
 @Injectable()
 export class RecipePostService {
     //@ts-ignore
     constructor(private readonly prismaDatabase: PrismaDatabase, @InjectRedis() private readonly redis: Redis) {}
 
-    async getRecipePosts(getRecipePostsArgs: GetRecipePostsArgs) {
+    async getRecipePosts(
+        getRecipePostsArgs: GetRecipePostsArgs,
+        userId: string | undefined,
+    ): Promise<GetRecipePostsRes> {
         const { category, size, cursor } = getRecipePostsArgs;
-        const posts = await this.prismaDatabase.recipePost.findMany({
+        const recipePosts = await this.prismaDatabase.recipePost.findMany({
             where: { category },
             take: size,
             skip: cursor ? 1 : 0,
             orderBy: { createdAt: 'desc' },
             ...(cursor && { cursor: { id: cursor } }),
+            select: {
+                id: true,
+                title: true,
+                thumbnailUrl: true,
+                createdAt: true,
+                updatedAt: true,
+                author: {
+                    select: {
+                        nickname: true,
+                        profileImageUrl: true,
+                    },
+                },
+                recipePostLikeUserRelation: {
+                    where: { userId },
+                },
+                _count: {
+                    select: {
+                        recipePostLikeUserRelation: true,
+                    },
+                },
+            },
         });
+
         let hasMore = true;
-        if (posts.length < size) {
+        if (recipePosts.length < size) {
             hasMore = false;
         }
+        const reply = recipePosts.map((v) => {
+            return {
+                id: v.id,
+                title: v.title,
+                thumbnailUrl: v.thumbnailUrl,
+                author: v.author,
+                isLike: !userId ? false : v.recipePostLikeUserRelation.length === 0 ? false : true,
+                likeCount: v._count.recipePostLikeUserRelation,
+                createdAt: v.createdAt,
+                updatedAt: v.updatedAt,
+            };
+        });
         return {
             hasMore,
-            posts,
+            recipePostList: reply,
         };
     }
 
-    async getDetailRecipePost(recipePostId: number, clientIp: string | undefined) {
+    async getDetailRecipePost(
+        recipePostId: number,
+        clientIp: string | undefined,
+        userId: string | undefined,
+    ): Promise<GetRecipePostDetailRes> {
         const existingPost = await this.prismaDatabase.recipePost.findUnique({
             where: { id: recipePostId },
+            select: {
+                id: true,
+                thumbnailUrl: true,
+                title: true,
+                content: true,
+                category: true,
+                createdAt: true,
+                updatedAt: true,
+                viewCount: true,
+                author: {
+                    select: {
+                        id: true,
+                        nickname: true,
+                        profileImageUrl: true,
+                    },
+                },
+                recipePostLikeUserRelation: {
+                    where: { userId },
+                },
+                _count: {
+                    select: {
+                        recipePostLikeUserRelation: true,
+                        recipePostComment: {
+                            where: { parentId: null },
+                        },
+                    },
+                },
+                recipePostTagReltaion: {
+                    select: {
+                        recipePostTag: {
+                            select: {
+                                id: true,
+                                title: true,
+                            },
+                        },
+                    },
+                },
+            },
         });
+
         if (!existingPost) {
             throw new CustomError({ customError: customErrorLabel.NO_EXISTING_RECIPE_POST.customError });
         }
+        const reply = {
+            id: existingPost.id,
+            thumbnailUrl: existingPost.thumbnailUrl,
+            title: existingPost.title,
+            content: existingPost.content,
+            category: existingPost.category,
+            createdAt: existingPost.createdAt,
+            updatedAt: existingPost.updatedAt,
+            author: existingPost.author,
+            isLike: !userId ? false : existingPost.recipePostLikeUserRelation.length === 0 ? false : true,
+            likeCount: existingPost._count.recipePostLikeUserRelation,
+            tags: existingPost.recipePostTagReltaion.map((v) => {
+                return { id: v.recipePostTag.id, title: v.recipePostTag.title };
+            }),
+            commentCount: existingPost._count.recipePostComment,
+        };
         const getViewCnt = await this.redis.get(redisPrefix.recipePostViewCount(existingPost.id));
         const getViewedPost = await this.redis.get(redisPrefix.alreadyViewedRecipe(existingPost.id, clientIp));
         if (!getViewedPost) {
@@ -59,13 +169,14 @@ export class RecipePostService {
                 await this.redis.set(redisPrefix.recipePostViewCount(existingPost.id), JSON.stringify(redisViewCnt));
             }
             await this.redis.set(redisPrefix.alreadyViewedRecipe(existingPost.id, clientIp), 'viewed', 'EX', 60);
-            return existingPost;
+
+            return reply;
         } else {
-            return existingPost;
+            return reply;
         }
     }
 
-    async createRecipePost(createRecipePostArgs: CreateRecipePostArgs, authorId: string) {
+    async createRecipePost(createRecipePostArgs: CreateRecipePostArgs, authorId: string): Promise<CreateRecipePostRes> {
         const { title, content, thumbnailUrl, category, tags } = createRecipePostArgs;
         try {
             const res = await this.prismaDatabase.recipePost.create({
@@ -95,6 +206,19 @@ export class RecipePostService {
                             },
                         }),
                 },
+                select: {
+                    id: true,
+                    title: true,
+                    thumbnailUrl: true,
+                    createdAt: true,
+                    updatedAt: true,
+                    author: {
+                        select: {
+                            nickname: true,
+                            profileImageUrl: true,
+                        },
+                    },
+                },
             });
 
             return res;
@@ -103,7 +227,7 @@ export class RecipePostService {
         }
     }
 
-    async deleteRecipePost(recipePostId: number, userId: string) {
+    async deleteRecipePost(recipePostId: number, userId: string): Promise<DeleteRecipePostRes> {
         try {
             const existingPost = await this.prismaDatabase.recipePost.findUnique({
                 where: { id: recipePostId },
@@ -117,13 +241,18 @@ export class RecipePostService {
                 where: { id: recipePostId },
                 select: { id: true },
             });
-            return res.id;
+            return {
+                recipePostId: res.id,
+            };
         } catch (err) {
             throw new CustomError({ customError: customErrorLabel.DELETE_RECIPE_POST_FAILURE.customError });
         }
     }
 
-    async modifyRecipePost(modifyRecipePostArgs: ModifyRecipePostArgs, userId: string) {
+    async modifyRecipePost(
+        modifyRecipePostArgs: ModifyRecipePostArgs,
+        userId: string,
+    ): Promise<GetRecipePostDetailRes> {
         const { title, content, thumbnailUrl, category, tags, recipePostId } = modifyRecipePostArgs;
 
         try {
@@ -204,8 +333,61 @@ export class RecipePostService {
                         }),
                     },
                 },
+                select: {
+                    id: true,
+                    thumbnailUrl: true,
+                    title: true,
+                    content: true,
+                    category: true,
+                    createdAt: true,
+                    updatedAt: true,
+                    viewCount: true,
+                    author: {
+                        select: {
+                            id: true,
+                            nickname: true,
+                            profileImageUrl: true,
+                        },
+                    },
+                    recipePostLikeUserRelation: {
+                        where: { userId },
+                    },
+                    _count: {
+                        select: {
+                            recipePostLikeUserRelation: true,
+                            recipePostComment: true,
+                        },
+                    },
+                    recipePostTagReltaion: {
+                        select: {
+                            recipePostTag: {
+                                select: {
+                                    id: true,
+                                    title: true,
+                                },
+                            },
+                        },
+                    },
+                },
             });
-            return res;
+
+            const reply = {
+                id: res.id,
+                thumbnailUrl: res.thumbnailUrl,
+                title: res.title,
+                content: res.content,
+                category: res.category,
+                createdAt: res.createdAt,
+                updatedAt: res.updatedAt,
+                author: res.author,
+                isLike: !userId ? false : res.recipePostLikeUserRelation.length === 0 ? false : true,
+                likeCount: res._count.recipePostLikeUserRelation,
+                tags: res.recipePostTagReltaion.map((v) => {
+                    return { id: v.recipePostTag.id, title: v.recipePostTag.title };
+                }),
+                commentCount: res._count.recipePostComment,
+            };
+            return reply;
         } catch (err) {
             throw new CustomError({ customError: customErrorLabel.MODIFY_RECIPE_POST_FAILURE.customError });
         }
@@ -227,7 +409,11 @@ export class RecipePostService {
                     userId,
                 },
             });
-            return createData;
+
+            return {
+                likeType,
+                recipePostId: createData.recipePostId,
+            };
         } else {
             if (!existingData) {
                 throw new CustomError({ customError: customErrorLabel.BAD_REQUEST.customError });
@@ -236,11 +422,14 @@ export class RecipePostService {
                 where: { userId_recipePostId: { recipePostId, userId } },
             });
 
-            return deleteData;
+            return {
+                likeType,
+                recipePostId: deleteData.recipePostId,
+            };
         }
     }
 
-    async getCommentList(getRecipeCommentListArgs: GetRecipeCommentListArgs) {
+    async getCommentList(getRecipeCommentListArgs: GetRecipeCommentListArgs): Promise<GetRecipePostCommentRes> {
         const { size, cursor, recipePostId, parentId } = getRecipeCommentListArgs;
         try {
             const existingPost = await this.prismaDatabase.recipePost.findUnique({ where: { id: recipePostId } });
@@ -257,7 +446,13 @@ export class RecipePostService {
                 select: {
                     id: true,
                     comment: true,
-                    writer: true,
+                    writer: {
+                        select: {
+                            id: true,
+                            profileImageUrl: true,
+                            nickname: true,
+                        },
+                    },
                     createdAt: true,
                     updatedAt: true,
                     deletedAt: true,
@@ -272,16 +467,30 @@ export class RecipePostService {
             if (commentData.length < size) {
                 hasMore = false;
             }
+            const commentList = commentData.map((v) => {
+                return {
+                    id: v.id,
+                    comment: v.comment,
+                    writer: v.writer,
+                    replyCount: v._count.children,
+                    createdAt: v.createdAt,
+                    updatedAt: v.updatedAt,
+                    deletedAt: v.deletedAt,
+                };
+            });
             return {
                 hasMore,
-                commentData,
+                commentList,
             };
         } catch (err) {
             throw new CustomError({ customError: customErrorLabel.GET_COMMENT_FAILURE.customError });
         }
     }
 
-    async createComment(createRecipeCommentArgs: CreateRecipeCommentArgs, userId: string) {
+    async createComment(
+        createRecipeCommentArgs: CreateRecipeCommentArgs,
+        userId: string,
+    ): Promise<CreateRecipePostCommentRes> {
         const { recipePostId, comment, parentId } = createRecipeCommentArgs;
         try {
             const existingPost = await this.prismaDatabase.recipePost.findUnique({ where: { id: recipePostId } });
@@ -296,14 +505,35 @@ export class RecipePostService {
                     parentId,
                     recipePostId,
                 },
+                select: {
+                    id: true,
+                    comment: true,
+                    writer: {
+                        select: {
+                            id: true,
+                            profileImageUrl: true,
+                            nickname: true,
+                        },
+                    },
+                    createdAt: true,
+                    updatedAt: true,
+                    deletedAt: true,
+                },
             });
-            return res;
+
+            return {
+                ...res,
+                replyCount: 0,
+            };
         } catch (err) {
             throw new CustomError({ customError: customErrorLabel.CREATE_COMMENT_FAILURE.customError });
         }
     }
 
-    async modifyComment(modifyRecipeCommentArgs: ModifyRecipeCommentArgs, userId: string) {
+    async modifyComment(
+        modifyRecipeCommentArgs: ModifyRecipeCommentArgs,
+        userId: string,
+    ): Promise<ModifyRecipePostCommentRes> {
         const { comment, commentId } = modifyRecipeCommentArgs;
 
         try {
@@ -327,14 +557,23 @@ export class RecipePostService {
                 data: {
                     comment,
                 },
+                select: {
+                    id: true,
+                    comment: true,
+                    updatedAt: true,
+                },
             });
-            return res;
+            return {
+                commentId: res.id,
+                comment: res.comment,
+                updatedAt: res.updatedAt,
+            };
         } catch (err) {
             throw new CustomError({ customError: customErrorLabel.MODIFY_COMMENT_FAILURE.customError });
         }
     }
 
-    async deleteComment(commentId: number, userId: string) {
+    async deleteComment(commentId: number, userId: string): Promise<DeleteRecipePostCommentRes> {
         try {
             const existingData = await this.prismaDatabase.recipePostComment.findUnique({
                 where: {
@@ -354,8 +593,15 @@ export class RecipePostService {
             const res = await this.prismaDatabase.recipePostComment.update({
                 where: { id: commentId },
                 data: { deletedAt: new Date() },
+                select: {
+                    id: true,
+                    deletedAt: true,
+                },
             });
-            return res;
+            return {
+                commentId: res.id,
+                deletedAt: res.deletedAt!,
+            };
         } catch (err) {
             throw new CustomError({ customError: customErrorLabel.DELETE_COMMENT_FAILURE.customError });
         }

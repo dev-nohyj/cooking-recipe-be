@@ -6,18 +6,32 @@ import { CustomSession } from 'express-session';
 import { RecipePostService } from './recipepost.service';
 import { RecipePostIdArgs } from './dtos/args/commonArgs';
 import { NoAuth } from 'src/decorators/noAuth.decorators';
-import { LikeRecipePostRes } from './dtos/res/likeRecipePostRes';
-import { GetRecipePostsArgs } from './dtos/args/getRecipePostsArgs';
-import { CreateRecipePostArgs } from './dtos/args/createRecipePostArgs';
-import { ModifyRecipePostArgs } from './dtos/args/modifyRecipePostArgs';
-import { LikeRecipePostArgs } from './dtos/args/likeRecipePostArgs';
 import {
     CommentIdArgs,
     CreateRecipeCommentArgs,
     GetRecipeCommentListArgs,
     ModifyRecipeCommentArgs,
-} from './dtos/args/RecipeCommentArgs';
+} from './dtos/args/recipeCommentArgs';
 import { Request } from 'express';
+import {
+    CreateRecipePostCommentRes,
+    DeleteRecipePostCommentRes,
+    GetRecipePostCommentRes,
+    ModifyRecipePostCommentRes,
+} from './dtos/res/recipeCommentRes';
+import {
+    GetRecipePostsArgs,
+    ModifyRecipePostArgs,
+    CreateRecipePostArgs,
+    LikeRecipePostArgs,
+} from './dtos/args/recipePostArgs';
+import {
+    GetRecipePostsRes,
+    GetRecipePostDetailRes,
+    LikeRecipePostRes,
+    CreateRecipePostRes,
+    DeleteRecipePostRes,
+} from './dtos/res/recipePostRes';
 
 @ApiTags(ApiTagLabel.recipePost)
 @Controller('recipe')
@@ -27,23 +41,30 @@ export class RecipePostController {
     @NoAuth()
     @SwaggerReply({
         summary: '게시물 조회',
+        type: GetRecipePostsRes,
     })
     @Get('')
-    getRecipePosts(@Query() getRecipePostsArgs: GetRecipePostsArgs) {
-        return this.recipePostService.getRecipePosts(getRecipePostsArgs);
+    getRecipePosts(@Query() getRecipePostsArgs: GetRecipePostsArgs, @Session() session: CustomSession) {
+        return this.recipePostService.getRecipePosts(getRecipePostsArgs, session.userId);
     }
 
     @NoAuth()
     @SwaggerReply({
         summary: '게시물 상세 조회',
+        type: GetRecipePostDetailRes,
     })
     @Get('/detail/:recipePostId')
-    getDetailRecipePost(@Req() { clientIp }: Request, @Param() { recipePostId }: RecipePostIdArgs) {
-        return this.recipePostService.getDetailRecipePost(recipePostId, clientIp);
+    getDetailRecipePost(
+        @Req() { clientIp }: Request,
+        @Param() { recipePostId }: RecipePostIdArgs,
+        @Session() session: CustomSession,
+    ) {
+        return this.recipePostService.getDetailRecipePost(recipePostId, clientIp, session.userId);
     }
 
     @SwaggerReply({
         summary: '게시물 추가',
+        type: CreateRecipePostRes,
     })
     @Post('create')
     createRecipePost(@Body() createRecipePostArgs: CreateRecipePostArgs, @Session() session: CustomSession) {
@@ -52,6 +73,7 @@ export class RecipePostController {
 
     @SwaggerReply({
         summary: '게시물 삭제',
+        type: DeleteRecipePostRes,
     })
     @Delete('delete')
     deleteRecipePost(@Query() { recipePostId }: RecipePostIdArgs, @Session() session: CustomSession) {
@@ -60,6 +82,7 @@ export class RecipePostController {
 
     @SwaggerReply({
         summary: '게시물 수정',
+        type: GetRecipePostDetailRes,
     })
     @Put('modify')
     modifyRecipePost(@Body() modifyRecipePostArgs: ModifyRecipePostArgs, @Session() session: CustomSession) {
@@ -78,6 +101,7 @@ export class RecipePostController {
     @NoAuth()
     @SwaggerReply({
         summary: '댓글 조회',
+        type: GetRecipePostCommentRes,
     })
     @Get('comment')
     getCommentList(@Query() getRecipeCommentListArgs: GetRecipeCommentListArgs) {
@@ -86,6 +110,7 @@ export class RecipePostController {
 
     @SwaggerReply({
         summary: '댓글 작성',
+        type: CreateRecipePostCommentRes,
     })
     @Post('comment')
     createComment(@Body() createRecipeCommentArgs: CreateRecipeCommentArgs, @Session() session: CustomSession) {
@@ -94,6 +119,7 @@ export class RecipePostController {
 
     @SwaggerReply({
         summary: '댓글 수정',
+        type: ModifyRecipePostCommentRes,
     })
     @Patch('comment')
     modifyComment(@Body() modifyRecipeCommentArgs: ModifyRecipeCommentArgs, @Session() session: CustomSession) {
@@ -102,6 +128,7 @@ export class RecipePostController {
 
     @SwaggerReply({
         summary: '댓글 삭제',
+        type: DeleteRecipePostCommentRes,
     })
     @Delete('comment')
     deleteComment(@Query() { commentId }: CommentIdArgs, @Session() session: CustomSession) {

@@ -57,7 +57,7 @@ export class GetRecipeCommentListArgs extends RecipePostIdArgs {
     size: number;
 
     @ApiProperty({
-        default: null,
+        default: undefined,
         description: '댓글 그룹 id',
         required: false,
     })

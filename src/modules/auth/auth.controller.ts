@@ -21,9 +21,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { ApiTagLabel } from 'src/asset/labels/common';
 import { AuthService } from './services/auth.service';
 import { CustomSession } from 'express-session';
-import { ModifyProfileRes } from './dtos/res/modifyProfileRes';
-import { ModifyProfileArgs } from './dtos/args/modifyProfileArgs';
-import { GetProfileRes } from './dtos/res/getProfileRes';
+import { ModifyProfileArgs } from './dtos/args/profileArgs';
+import { GetProfileRes, ModifyProfileRes } from './dtos/res/profileRes';
 
 @ApiTags(ApiTagLabel.auth)
 @Controller('auth')

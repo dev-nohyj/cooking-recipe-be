@@ -3,25 +3,85 @@ import { PrismaDatabase } from 'src/prisma/prisma.service';
 import { LikeTypeLabel } from 'src/asset/labels/common';
 import { CustomError } from 'src/error/custom.error';
 import { customErrorLabel } from 'src/asset/labels/error';
-import { GetFoodPostsArgs } from './dtos/args/getFoodPostsArgs';
-import { LikeFoodPostArgs } from './dtos/args/likeFoodPostArgs';
-import { CreateFoodPostArgs } from './dtos/args/createFoodPostArgs';
-import { ModifyFoodPostArgs } from './dtos/args/modifyFoodPostArgs';
+
 import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
 import { redisPrefix } from 'src/asset/prefix';
+import { CreateFoodPostArgs, GetFoodPostsArgs, LikeFoodPostArgs, ModifyFoodPostArgs } from './dtos/args/foodPostArgs';
+import {
+    CreateFoodPostRes,
+    DeleteFoodPostRes,
+    GetFoodPostDetailRes,
+    GetFoodPostsRes,
+    LikeFoodPostRes,
+} from './dtos/res/foodPostRes';
 
 @Injectable()
 export class FoodPostService {
     // @ts-ignore
     constructor(private readonly prismaDatabase: PrismaDatabase, @InjectRedis() private readonly redis: Redis) {}
 
-    async getDetailFoodPost(foodPostId: number, clientIp: string | undefined) {
+    async getDetailFoodPost(
+        foodPostId: number,
+        clientIp: string | undefined,
+        userId: string | undefined,
+    ): Promise<GetFoodPostDetailRes> {
         const existingPost = await this.prismaDatabase.foodPost.findUnique({
             where: { id: foodPostId },
+            select: {
+                id: true,
+                description: true,
+                author: {
+                    select: {
+                        id: true,
+                        nickname: true,
+                        profileImageUrl: true,
+                    },
+                },
+                createdAt: true,
+                updatedAt: true,
+                viewCount: true,
+                foodPostImages: {
+                    select: {
+                        id: true,
+                        url: true,
+                    },
+                },
+                foodPostLikeUserRelation: {
+                    where: { userId },
+                },
+                _count: {
+                    select: {
+                        foodPostLikeUserRelation: true,
+                    },
+                },
+                foodPostTagReltaion: {
+                    select: {
+                        foodPostTag: {
+                            select: {
+                                id: true,
+                                title: true,
+                            },
+                        },
+                    },
+                },
+            },
         });
         if (!existingPost) {
             throw new CustomError({ customError: customErrorLabel.NO_EXISTING_FOOD_POST.customError });
         }
+        const reply = {
+            id: existingPost.id,
+            description: existingPost.description,
+            author: existingPost.author,
+            foodImages: existingPost.foodPostImages,
+            isLike: !userId ? false : existingPost.foodPostLikeUserRelation.length === 0 ? false : true,
+            likeCount: existingPost._count.foodPostLikeUserRelation,
+            tags: existingPost.foodPostTagReltaion.map((v) => {
+                return { id: v.foodPostTag.id, title: v.foodPostTag.title };
+            }),
+            createdAt: existingPost.createdAt,
+            updatedAt: existingPost.updatedAt,
+        };
         const getViewCnt = await this.redis.get(redisPrefix.foodPostViewCount(existingPost.id));
         const getViewedPost = await this.redis.get(redisPrefix.alreadyViewedFood(existingPost.id, clientIp));
         if (!getViewedPost) {
@@ -34,13 +94,13 @@ export class FoodPostService {
                 await this.redis.set(redisPrefix.foodPostViewCount(existingPost.id), JSON.stringify(redisViewCnt));
             }
             await this.redis.set(redisPrefix.alreadyViewedFood(existingPost.id, clientIp), 'viewed', 'EX', 60);
-            return existingPost;
+            return reply;
         } else {
-            return existingPost;
+            return reply;
         }
     }
 
-    async getFoodPosts(getFoodPostsArgs: GetFoodPostsArgs) {
+    async getFoodPosts(getFoodPostsArgs: GetFoodPostsArgs, userId: string | undefined): Promise<GetFoodPostsRes> {
         const { size, cursor } = getFoodPostsArgs;
 
         const posts = await this.prismaDatabase.foodPost.findMany({
@@ -48,31 +108,62 @@ export class FoodPostService {
             skip: cursor ? 1 : 0,
             orderBy: { createdAt: 'desc' },
             ...(cursor && { cursor: { id: cursor } }),
+            select: {
+                id: true,
+                description: true,
+                author: {
+                    select: {
+                        nickname: true,
+                        profileImageUrl: true,
+                    },
+                },
+                foodPostImages: {
+                    take: 1,
+                    select: {
+                        url: true,
+                    },
+                },
+                createdAt: true,
+                updatedAt: true,
+                foodPostLikeUserRelation: {
+                    where: { userId },
+                },
+                _count: {
+                    select: {
+                        foodPostLikeUserRelation: true,
+                    },
+                },
+            },
         });
 
         let hasMore = true;
         if (posts.length < size) {
             hasMore = false;
         }
-
+        const reply = posts.map((v) => {
+            return {
+                id: v.id,
+                description: v.description,
+                author: v.author,
+                imageUrl: v.foodPostImages[0].url,
+                isLike: !userId ? false : v.foodPostLikeUserRelation.length === 0 ? false : true,
+                likeCount: v._count.foodPostLikeUserRelation,
+                createdAt: v.createdAt,
+                updatedAt: v.updatedAt,
+            };
+        });
         return {
             hasMore,
-            posts,
+            foodPostList: reply,
         };
     }
 
-    async createFoodPost(createFoodPost: CreateFoodPostArgs, authorId: string) {
-        const { mainImageUrl, description, tags, otherImages } = createFoodPost;
-        const imageUrls =
-            !!otherImages && otherImages.length > 0
-                ? otherImages.map((v) => {
-                      return { url: v };
-                  })
-                : [];
+    async createFoodPost(createFoodPost: CreateFoodPostArgs, authorId: string): Promise<CreateFoodPostRes> {
+        const { description, tags, foodImages } = createFoodPost;
+
         try {
             const res = await this.prismaDatabase.foodPost.create({
                 data: {
-                    mainImageUrl,
                     description,
                     authorId,
                     ...(!!tags &&
@@ -94,24 +185,44 @@ export class FoodPostService {
                                 }),
                             },
                         }),
-                    ...(!!otherImages &&
-                        otherImages.length > 0 && {
-                            foodPostImages: {
-                                createMany: {
-                                    data: imageUrls,
-                                },
+                    ...(foodImages.length > 0 && {
+                        foodPostImages: {
+                            createMany: {
+                                data: foodImages,
                             },
-                        }),
+                        },
+                    }),
+                },
+                select: {
+                    id: true,
+                    description: true,
+                    author: {
+                        select: {
+                            nickname: true,
+                            profileImageUrl: true,
+                        },
+                    },
+                    createdAt: true,
+                    updatedAt: true,
+                    foodPostImages: {
+                        take: 1,
+                        select: {
+                            url: true,
+                        },
+                    },
                 },
             });
 
-            return res;
+            return {
+                ...res,
+                imageUrl: res.foodPostImages[0].url,
+            };
         } catch (err) {
             throw new CustomError({ customError: customErrorLabel.CREATE_FOOD_POST_FAILURE.customError });
         }
     }
 
-    async deleteFoodPost(foodPostId: number, userId: string) {
+    async deleteFoodPost(foodPostId: number, userId: string): Promise<DeleteFoodPostRes> {
         try {
             const existingPost = await this.prismaDatabase.foodPost.findUnique({
                 where: { id: foodPostId },
@@ -125,14 +236,14 @@ export class FoodPostService {
                 where: { id: foodPostId },
                 select: { id: true },
             });
-            return res.id;
+            return { foodPostId: res.id };
         } catch (err) {
             throw new CustomError({ customError: customErrorLabel.DELETE_FOOD_POST_FAILURE.customError });
         }
     }
 
     async modifyFoodPost(modifyFoodPostArgs: ModifyFoodPostArgs, authorId: string) {
-        const { foodPostId, mainImageUrl, description, tags, otherImages } = modifyFoodPostArgs;
+        const { foodPostId, description, tags } = modifyFoodPostArgs;
 
         const existingData = await this.prismaDatabase.foodPost.findUnique({
             where: { id: foodPostId },
@@ -152,10 +263,12 @@ export class FoodPostService {
                     where: { foodPostId },
                     select: {
                         id: true,
+                        url: true,
                     },
                 },
             },
         });
+
         if (!existingData) {
             throw new CustomError({ customError: customErrorLabel.NO_EXISTING_FOOD_POST.customError });
         }
@@ -183,20 +296,23 @@ export class FoodPostService {
                       .map((v) => v.foodPostTag.id)
                 : existingData.foodPostTagReltaion.map((v) => v.foodPostTag.id);
 
-        const deleteImages = existingData.foodPostImages
-            .filter((v) => {
-                const ids =
-                    !!otherImages && otherImages.length > 0
-                        ? otherImages.filter((v) => typeof v.id === 'number').map((v) => v.id)
-                        : [];
-                return !ids.includes(v.id);
-            })
-            .map((v) => v.id);
+        // const createFoodImages = foodImages
+        //     .filter((v) => {
+        //         const existingImages = existingData.foodPostImages.map((v) => v.url);
+        //         return !existingImages.includes(v);
+        //     })
+        //     .map((v) => {
+        //         return { url: v };
+        //     });
+        // const deleteFoodImages = existingData.foodPostImages
+        //     .filter((v) => {
+        //         return !foodImages.includes(v.url);
+        //     })
+        //     .map((v) => v.id);
 
         const res = await this.prismaDatabase.foodPost.update({
             where: { id: foodPostId },
             data: {
-                mainImageUrl,
                 description,
                 foodPostTagReltaion: {
                     ...(createTags.length > 0 && {
@@ -223,39 +339,26 @@ export class FoodPostService {
                         },
                     }),
                 },
-                foodPostImages: {
-                    ...(deleteImages.length > 0 && {
-                        deleteMany: {
-                            id: {
-                                in: deleteImages,
-                            },
-                        },
-                    }),
-                    ...(!!otherImages &&
-                        otherImages.length > 0 && {
-                            updateMany: otherImages
-                                .filter((v) => typeof v.id === 'number')
-                                .map((image) => {
-                                    return {
-                                        where: { id: image.id },
-                                        data: { url: image.url },
-                                    };
-                                }),
-                            createMany: {
-                                data: otherImages
-                                    .filter((v) => typeof v.id === 'undefined')
-                                    .map((image) => {
-                                        return { url: image.url };
-                                    }),
-                            },
-                        }),
-                },
+                // foodPostImages: {
+                //     ...(deleteFoodImages.length > 0 && {
+                //         deleteMany: {
+                //             id: {
+                //                 in: deleteFoodImages,
+                //             },
+                //         },
+                //     }),
+                //     ...(createFoodImages.length > 0 && {
+                //         createMany: {
+                //             data: createFoodImages,
+                //         },
+                //     }),
+                // },
             },
         });
         return res;
     }
 
-    async likeFoodPost(likeFoodPostArgs: LikeFoodPostArgs, userId: string) {
+    async likeFoodPost(likeFoodPostArgs: LikeFoodPostArgs, userId: string): Promise<LikeFoodPostRes> {
         const { foodPostId, likeType } = likeFoodPostArgs;
 
         const existingData = await this.prismaDatabase.foodPostLikeUserRelation.findUnique({
@@ -272,7 +375,10 @@ export class FoodPostService {
                     userId,
                 },
             });
-            return createData;
+            return {
+                foodPostId: createData.foodPostId,
+                likeType,
+            };
         } else {
             if (!existingData) {
                 throw new CustomError({ customError: customErrorLabel.BAD_REQUEST.customError });
@@ -281,7 +387,10 @@ export class FoodPostService {
                 where: { userId_foodPostId: { foodPostId, userId } },
             });
 
-            return deleteData;
+            return {
+                foodPostId: deleteData.foodPostId,
+                likeType,
+            };
         }
     }
 }

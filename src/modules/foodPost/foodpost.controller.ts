@@ -5,13 +5,16 @@ import { NoAuth } from 'src/decorators/noAuth.decorators';
 import { SwaggerReply } from 'src/decorators/swaggerReply.decorators';
 import { FoodPostService } from './foodpost.service';
 import { CustomSession } from 'express-session';
-import { LikeFoodPostRes } from './dtos/res/likeRecipePostRes';
 import { FoodPostIdArgs } from './dtos/args/commonArgs';
-import { GetFoodPostsArgs } from './dtos/args/getFoodPostsArgs';
-import { LikeFoodPostArgs } from './dtos/args/likeFoodPostArgs';
-import { CreateFoodPostArgs } from './dtos/args/createFoodPostArgs';
-import { ModifyFoodPostArgs } from './dtos/args/modifyFoodPostArgs';
 import { Request } from 'express';
+import { CreateFoodPostArgs, GetFoodPostsArgs, LikeFoodPostArgs, ModifyFoodPostArgs } from './dtos/args/foodPostArgs';
+import {
+    CreateFoodPostRes,
+    DeleteFoodPostRes,
+    GetFoodPostDetailRes,
+    GetFoodPostsRes,
+    LikeFoodPostRes,
+} from './dtos/res/foodPostRes';
 
 @ApiTags(ApiTagLabel.foodPost)
 @Controller('food')
@@ -21,23 +24,30 @@ export class FoodPostController {
     @NoAuth()
     @SwaggerReply({
         summary: '게시물 조회',
+        type: GetFoodPostsRes,
     })
     @Get('')
-    getFoodPosts(@Query() getFoodPostsArgs: GetFoodPostsArgs) {
-        return this.foodPostService.getFoodPosts(getFoodPostsArgs);
+    getFoodPosts(@Query() getFoodPostsArgs: GetFoodPostsArgs, @Session() session: CustomSession) {
+        return this.foodPostService.getFoodPosts(getFoodPostsArgs, session.userId);
     }
 
     @NoAuth()
     @SwaggerReply({
         summary: '게시물 상세 조회',
+        type: GetFoodPostDetailRes,
     })
     @Get('/detail/:foodPostId')
-    getDetailFoodPost(@Req() { clientIp }: Request, @Param() { foodPostId }: FoodPostIdArgs) {
-        return this.foodPostService.getDetailFoodPost(foodPostId, clientIp);
+    getDetailFoodPost(
+        @Req() { clientIp }: Request,
+        @Param() { foodPostId }: FoodPostIdArgs,
+        @Session() session: CustomSession,
+    ) {
+        return this.foodPostService.getDetailFoodPost(foodPostId, clientIp, session.userId);
     }
 
     @SwaggerReply({
         summary: '게시물 추가',
+        type: CreateFoodPostRes,
     })
     @Post('create')
     createFoodPost(@Body() createFoodPostArgs: CreateFoodPostArgs, @Session() session: CustomSession) {
@@ -46,6 +56,7 @@ export class FoodPostController {
 
     @SwaggerReply({
         summary: '게시물 삭제',
+        type: DeleteFoodPostRes,
     })
     @Delete('delete')
     deleteFoodPost(@Query() { foodPostId }: FoodPostIdArgs, @Session() session: CustomSession) {

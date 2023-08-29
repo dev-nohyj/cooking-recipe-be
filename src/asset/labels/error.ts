@@ -79,6 +79,11 @@ export const customErrorLabel = {
         customError: 'DELETE_FOOD_POST_FAILURE',
         clientMsg: '게시물 삭제에 실패했습니다.',
     },
+    MAX_FOOD_POST_IMAGES: {
+        code: 203,
+        customError: 'MAX_FOOD_POST_IMAGES',
+        clientMsg: '이미지 최대 갯수를 초과했습니다.',
+    },
     NO_EXISTING_FOOD_POST: {
         code: 204,
         customError: 'NO_EXISTING_FOOD_POST',

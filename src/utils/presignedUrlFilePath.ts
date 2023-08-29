@@ -8,6 +8,8 @@ export const presignedUrlFilePath = (type: PresignedUrlTypeLabel) => {
             return 'recipePost/thumb/origin/';
         case PresignedUrlTypeLabel.recipePostContent:
             return 'recipePost/content/';
+        case PresignedUrlTypeLabel.foodPostImage:
+            return 'foodPost/origin/';
         default:
             '';
     }

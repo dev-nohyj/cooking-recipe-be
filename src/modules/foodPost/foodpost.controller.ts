@@ -65,6 +65,7 @@ export class FoodPostController {
 
     @SwaggerReply({
         summary: '게시물 수정',
+        type: GetFoodPostDetailRes,
     })
     @Put('modify')
     modifyFoodPost(@Body() modifyFoodPostArgs: ModifyFoodPostArgs, @Session() session: CustomSession) {

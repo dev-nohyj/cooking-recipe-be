@@ -242,8 +242,8 @@ export class FoodPostService {
         }
     }
 
-    async modifyFoodPost(modifyFoodPostArgs: ModifyFoodPostArgs, authorId: string) {
-        const { foodPostId, description, tags } = modifyFoodPostArgs;
+    async modifyFoodPost(modifyFoodPostArgs: ModifyFoodPostArgs, authorId: string): Promise<GetFoodPostDetailRes> {
+        const { foodPostId, description, tags, foodImages } = modifyFoodPostArgs;
 
         const existingData = await this.prismaDatabase.foodPost.findUnique({
             where: { id: foodPostId },
@@ -296,19 +296,14 @@ export class FoodPostService {
                       .map((v) => v.foodPostTag.id)
                 : existingData.foodPostTagReltaion.map((v) => v.foodPostTag.id);
 
-        // const createFoodImages = foodImages
-        //     .filter((v) => {
-        //         const existingImages = existingData.foodPostImages.map((v) => v.url);
-        //         return !existingImages.includes(v);
-        //     })
-        //     .map((v) => {
-        //         return { url: v };
-        //     });
-        // const deleteFoodImages = existingData.foodPostImages
-        //     .filter((v) => {
-        //         return !foodImages.includes(v.url);
-        //     })
-        //     .map((v) => v.id);
+        const createFoodImages = foodImages.filter((v) => typeof v.id === 'undefined');
+        const modifyFoodImages = foodImages.filter((v) => typeof v.id === 'number');
+        const deleteFoodImages = existingData.foodPostImages
+            .filter((v) => {
+                const foodImageIds = foodImages.map((v) => v.id);
+                return !foodImageIds.includes(v.id);
+            })
+            .map((v) => v.id);
 
         const res = await this.prismaDatabase.foodPost.update({
             where: { id: foodPostId },
@@ -339,23 +334,82 @@ export class FoodPostService {
                         },
                     }),
                 },
-                // foodPostImages: {
-                //     ...(deleteFoodImages.length > 0 && {
-                //         deleteMany: {
-                //             id: {
-                //                 in: deleteFoodImages,
-                //             },
-                //         },
-                //     }),
-                //     ...(createFoodImages.length > 0 && {
-                //         createMany: {
-                //             data: createFoodImages,
-                //         },
-                //     }),
-                // },
+                foodPostImages: {
+                    ...(deleteFoodImages.length > 0 && {
+                        deleteMany: {
+                            id: {
+                                in: deleteFoodImages,
+                            },
+                        },
+                    }),
+                    ...(createFoodImages.length > 0 && {
+                        createMany: {
+                            data: createFoodImages,
+                        },
+                    }),
+                    ...(modifyFoodImages.length > 0 && {
+                        updateMany: modifyFoodImages.map((v) => {
+                            return {
+                                where: { id: v.id },
+                                data: { url: v.url },
+                            };
+                        }),
+                    }),
+                },
+            },
+            select: {
+                id: true,
+                description: true,
+                author: {
+                    select: {
+                        id: true,
+                        nickname: true,
+                        profileImageUrl: true,
+                    },
+                },
+                createdAt: true,
+                updatedAt: true,
+                viewCount: true,
+                foodPostImages: {
+                    select: {
+                        id: true,
+                        url: true,
+                    },
+                },
+                foodPostLikeUserRelation: {
+                    where: { userId: authorId },
+                },
+                _count: {
+                    select: {
+                        foodPostLikeUserRelation: true,
+                    },
+                },
+                foodPostTagReltaion: {
+                    select: {
+                        foodPostTag: {
+                            select: {
+                                id: true,
+                                title: true,
+                            },
+                        },
+                    },
+                },
             },
         });
-        return res;
+        const reply = {
+            id: res.id,
+            description: res.description,
+            author: res.author,
+            foodImages: res.foodPostImages,
+            isLike: !authorId ? false : res.foodPostLikeUserRelation.length === 0 ? false : true,
+            likeCount: res._count.foodPostLikeUserRelation,
+            tags: res.foodPostTagReltaion.map((v) => {
+                return { id: v.foodPostTag.id, title: v.foodPostTag.title };
+            }),
+            createdAt: res.createdAt,
+            updatedAt: res.updatedAt,
+        };
+        return reply;
     }
 
     async likeFoodPost(likeFoodPostArgs: LikeFoodPostArgs, userId: string): Promise<LikeFoodPostRes> {

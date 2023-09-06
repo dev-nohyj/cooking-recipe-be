@@ -47,13 +47,16 @@ export class CreateFoodPostArgs {
     tags: string[] | null;
 
     @ApiProperty({
-        default: [{ url: 'https://www.naverImage.com/image.png' }, { url: 'https://www.naverImage.com/image2.png' }],
-        description: '이미지 url(최대 6개)',
+        default: [
+            { id: undefined, url: 'https://www.naverImage.com/image.png' },
+            { id: 1, url: 'https://www.naverImage.com/image2.png' },
+        ],
+        description: '이미지 url(최대 6개) 추가는 id undefined',
     })
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => FoodImages)
-    @ValidateIf((_, value: { url: string }[]) => {
+    @ValidateIf((_, value: { id?: number; url: string }[]) => {
         if (value === null) {
             throw new CustomError({ customError: customErrorLabel.INVALID_DATA_TYPE.customError });
         }
@@ -69,6 +72,11 @@ export class CreateFoodPostArgs {
     foodImages: FoodImages[];
 }
 class FoodImages {
+    @IsNumber()
+    @IsOptional()
+    @Type(() => Number)
+    id: number | undefined;
+
     @IsString()
     @IsNotEmpty()
     url: string;

@@ -4,6 +4,7 @@ import {
     Delete,
     Get,
     HttpStatus,
+    Patch,
     Post,
     Put,
     Redirect,
@@ -21,8 +22,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { ApiTagLabel } from 'src/asset/labels/common';
 import { AuthService } from './services/auth.service';
 import { CustomSession } from 'express-session';
-import { ModifyProfileArgs } from './dtos/args/profileArgs';
-import { GetProfileRes, ModifyProfileRes } from './dtos/res/profileRes';
+import { ModifyProfileArgs, ModifyProfileImageArgs } from './dtos/args/profileArgs';
+import { GetProfileRes, ModifyProfileImageRes, ModifyProfileRes } from './dtos/res/profileRes';
 
 @ApiTags(ApiTagLabel.auth)
 @Controller('auth')
@@ -94,6 +95,15 @@ export class AuthController {
     @Put('modifyProfile')
     modifyProfile(@Body() modifyProfileArgs: ModifyProfileArgs, @Session() session: CustomSession) {
         return this.authService.modifyProfile(modifyProfileArgs, session);
+    }
+
+    @SwaggerReply({
+        summary: '유저 프로필 사진 수정',
+        type: ModifyProfileImageRes,
+    })
+    @Patch('modifyProfileImage')
+    modifyProfileImage(@Body() modifyProfileImageArgs: ModifyProfileImageArgs, @Session() session: CustomSession) {
+        return this.authService.modifyProfileImage(modifyProfileImageArgs, session);
     }
 
     @NoAuth()

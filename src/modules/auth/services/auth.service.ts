@@ -11,8 +11,8 @@ import { customErrorLabel } from 'src/asset/labels/error';
 import { clearCookieOption } from 'src/config/session';
 import { ProviderLabel } from 'src/asset/labels/common';
 import axios from 'axios';
-import { ModifyProfileArgs } from '../dtos/args/profileArgs';
-import { GetProfileRes, ModifyProfileRes } from '../dtos/res/profileRes';
+import { ModifyProfileArgs, ModifyProfileImageArgs } from '../dtos/args/profileArgs';
+import { GetProfileRes, ModifyProfileImageRes, ModifyProfileRes } from '../dtos/res/profileRes';
 
 @Injectable()
 export class AuthService {
@@ -159,7 +159,35 @@ export class AuthService {
     }
 
     async modifyProfile(modifyProfileArgs: ModifyProfileArgs, session: CustomSession): Promise<ModifyProfileRes> {
-        const { profileImageUrl, nickname, introduction } = modifyProfileArgs;
+        const { nickname, introduction } = modifyProfileArgs;
+        const user = await this.prismaDatabase.user.findUnique({ where: { id: session.userId } });
+
+        if (!user) {
+            throw new CustomError({ customError: customErrorLabel.NO_EXISTING_USER.customError });
+        }
+        try {
+            const updateUser = await this.prismaDatabase.user.update({
+                where: { id: session.userId },
+                data: {
+                    nickname,
+                    introduction,
+                },
+                select: {
+                    nickname: true,
+                    introduction: true,
+                },
+            });
+            return updateUser;
+        } catch (err) {
+            throw new CustomError({ customError: customErrorLabel.MODIFY_USER_FAILURE.customError });
+        }
+    }
+
+    async modifyProfileImage(
+        modifyProfileImageArgs: ModifyProfileImageArgs,
+        session: CustomSession,
+    ): Promise<ModifyProfileImageRes> {
+        const { profileImageUrl } = modifyProfileImageArgs;
         const user = await this.prismaDatabase.user.findUnique({ where: { id: session.userId } });
 
         if (!user) {
@@ -170,13 +198,9 @@ export class AuthService {
                 where: { id: session.userId },
                 data: {
                     profileImageUrl,
-                    nickname,
-                    introduction,
                 },
                 select: {
                     profileImageUrl: true,
-                    nickname: true,
-                    introduction: true,
                 },
             });
             return updateUser;

@@ -20,12 +20,6 @@ export class CreateRecipePostCommentRes {
     writer: { id: string; profileImageUrl: string | null; nickname: string } | null;
 
     @ApiProperty({
-        default: 0,
-        description: '답글 갯수',
-    })
-    replyCount: number;
-
-    @ApiProperty({
         description: '생성일',
     })
     createdAt: Date;
@@ -68,7 +62,6 @@ export class GetRecipePostCommentRes {
                 id: 1,
                 comment: '댓글 내용',
                 writer: { id: 'uuid', profileImageUrl: 'https://profileImageUrl', nickname: 'nickname' },
-                replyCount: 10,
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 deletedAt: null,
@@ -77,7 +70,6 @@ export class GetRecipePostCommentRes {
                 id: 2,
                 comment: '댓글 내용',
                 writer: { id: 'uuid', profileImageUrl: 'https://profileImageUrl', nickname: 'nickname' },
-                replyCount: 10,
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 deletedAt: null,
@@ -89,7 +81,6 @@ export class GetRecipePostCommentRes {
         id: number;
         comment: string;
         writer: { id: string; profileImageUrl: string | null; nickname: string } | null;
-        replyCount: number;
         createdAt: Date;
         updatedAt: Date;
         deletedAt: Date | null;

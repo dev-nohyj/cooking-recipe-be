@@ -97,6 +97,7 @@ export class GetRecipePostDetailRes {
             id: 'uuid',
             nickname: 'nickname',
             profileImageUrl: null,
+            introduction: 'hi',
         },
         description: '작성자 정보',
     })
@@ -104,6 +105,7 @@ export class GetRecipePostDetailRes {
         id: string;
         nickname: string;
         profileImageUrl: string | null;
+        introduction: string | null;
     };
 
     @ApiProperty({

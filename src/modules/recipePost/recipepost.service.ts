@@ -112,6 +112,7 @@ export class RecipePostService {
                         id: true,
                         nickname: true,
                         profileImageUrl: true,
+                        introduction: true,
                     },
                 },
                 recipePostLikeUserRelation: {
@@ -347,6 +348,7 @@ export class RecipePostService {
                             id: true,
                             nickname: true,
                             profileImageUrl: true,
+                            introduction: true,
                         },
                     },
                     recipePostLikeUserRelation: {
@@ -456,11 +458,6 @@ export class RecipePostService {
                     createdAt: true,
                     updatedAt: true,
                     deletedAt: true,
-                    _count: {
-                        select: {
-                            children: true,
-                        },
-                    },
                 },
             });
             let hasMore = true;
@@ -472,7 +469,6 @@ export class RecipePostService {
                     id: v.id,
                     comment: v.comment,
                     writer: v.writer,
-                    replyCount: v._count.children,
                     createdAt: v.createdAt,
                     updatedAt: v.updatedAt,
                     deletedAt: v.deletedAt,
@@ -521,10 +517,7 @@ export class RecipePostService {
                 },
             });
 
-            return {
-                ...res,
-                replyCount: 0,
-            };
+            return res;
         } catch (err) {
             throw new CustomError({ customError: customErrorLabel.CREATE_COMMENT_FAILURE.customError });
         }

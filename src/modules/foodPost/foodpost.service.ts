@@ -100,7 +100,7 @@ export class FoodPostService {
         }
     }
 
-    async getFoodPosts(getFoodPostsArgs: GetFoodPostsArgs, userId: string | undefined): Promise<GetFoodPostsRes> {
+    async getFoodPosts(getFoodPostsArgs: GetFoodPostsArgs): Promise<GetFoodPostsRes> {
         const { size, cursor } = getFoodPostsArgs;
 
         const posts = await this.prismaDatabase.foodPost.findMany({
@@ -125,14 +125,6 @@ export class FoodPostService {
                 },
                 createdAt: true,
                 updatedAt: true,
-                foodPostLikeUserRelation: {
-                    where: { userId },
-                },
-                _count: {
-                    select: {
-                        foodPostLikeUserRelation: true,
-                    },
-                },
             },
         });
 
@@ -146,8 +138,6 @@ export class FoodPostService {
                 description: v.description,
                 author: v.author,
                 imageUrl: v.foodPostImages[0].url,
-                isLike: !userId ? false : v.foodPostLikeUserRelation.length === 0 ? false : true,
-                likeCount: v._count.foodPostLikeUserRelation,
                 createdAt: v.createdAt,
                 updatedAt: v.updatedAt,
             };

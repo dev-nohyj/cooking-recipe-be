@@ -37,8 +37,6 @@ export class GetFoodPostsRes {
                 description: '내용',
                 author: { nickname: 'hi', profileImageUrl: 'https://profileImage.com' },
                 imageUrl: 'https://www.imageUrl',
-                isLike: true,
-                likeCount: 0,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             },
@@ -47,8 +45,6 @@ export class GetFoodPostsRes {
                 description: '내용',
                 author: { nickname: 'hi', profileImageUrl: 'https://profileImage.com' },
                 imageUrl: 'https://www.imageUrl',
-                isLike: true,
-                likeCount: 0,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             },
@@ -59,8 +55,6 @@ export class GetFoodPostsRes {
         description: string | null;
         author: { nickname: string; profileImageUrl: string | null };
         imageUrl: string;
-        isLike: boolean;
-        likeCount: number;
         createdAt: Date;
         updatedAt: Date;
     }[];

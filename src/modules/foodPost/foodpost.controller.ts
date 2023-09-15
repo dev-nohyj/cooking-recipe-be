@@ -27,8 +27,8 @@ export class FoodPostController {
         type: GetFoodPostsRes,
     })
     @Get('')
-    getFoodPosts(@Query() getFoodPostsArgs: GetFoodPostsArgs, @Session() session: CustomSession) {
-        return this.foodPostService.getFoodPosts(getFoodPostsArgs, session.userId);
+    getFoodPosts(@Query() getFoodPostsArgs: GetFoodPostsArgs) {
+        return this.foodPostService.getFoodPosts(getFoodPostsArgs);
     }
 
     @NoAuth()

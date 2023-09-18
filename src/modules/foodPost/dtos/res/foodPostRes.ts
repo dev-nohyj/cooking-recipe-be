@@ -72,13 +72,14 @@ export class GetFoodPostDetailRes {
     })
     description: string | null;
     @ApiProperty({
-        default: { id: 'uuid', nickname: 'nickname', profileImageUrl: 'https://profilImageUrl' },
+        default: { id: 'uuid', nickname: 'nickname', profileImageUrl: 'https://profilImageUrl', introduction: 'hi' },
         description: 'author info',
     })
     author: {
         id: string;
         nickname: string;
         profileImageUrl: string | null;
+        introduction: string | null;
     };
     @ApiProperty({
         default: [

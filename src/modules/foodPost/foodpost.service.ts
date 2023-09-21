@@ -12,6 +12,7 @@ import {
     DeleteFoodPostRes,
     GetFoodPostDetailRes,
     GetFoodPostsRes,
+    GetPopularFoodPostsRes,
     LikeFoodPostRes,
 } from './dtos/res/foodPostRes';
 
@@ -438,5 +439,41 @@ export class FoodPostService {
                 likeType,
             };
         }
+    }
+
+    async getPopularFoodPosts(): Promise<GetPopularFoodPostsRes> {
+        const posts = await this.prismaDatabase.foodPost.findMany({
+            take: 10,
+            orderBy: [{ foodPostLikeUserRelation: { _count: 'desc' } }, { viewCount: 'desc' }],
+            select: {
+                id: true,
+                description: true,
+                author: {
+                    select: {
+                        nickname: true,
+                        profileImageUrl: true,
+                    },
+                },
+                foodPostImages: {
+                    take: 1,
+                    select: { url: true },
+                },
+                createdAt: true,
+                updatedAt: true,
+            },
+        });
+        const reply = posts.map((v) => {
+            return {
+                id: v.id,
+                description: v.description,
+                author: v.author,
+                imageUrl: v.foodPostImages[0].url,
+                createdAt: v.createdAt,
+                updatedAt: v.updatedAt,
+            };
+        });
+        return {
+            foodPostList: reply,
+        };
     }
 }

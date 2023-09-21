@@ -156,3 +156,35 @@ export class CreateFoodPostRes {
     })
     updatedAt: Date;
 }
+
+export class GetPopularFoodPostsRes {
+    @ApiProperty({
+        default: [
+            {
+                id: 1,
+                description: '내용',
+                author: { nickname: 'hi', profileImageUrl: 'https://profileImage.com' },
+                imageUrl: 'https://www.imageUrl',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            },
+            {
+                id: 2,
+                description: '내용',
+                author: { nickname: 'hi', profileImageUrl: 'https://profileImage.com' },
+                imageUrl: 'https://www.imageUrl',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            },
+        ],
+        isArray: true,
+    })
+    foodPostList: {
+        id: number;
+        description: string | null;
+        author: { nickname: string; profileImageUrl: string | null };
+        imageUrl: string;
+        createdAt: Date;
+        updatedAt: Date;
+    }[];
+}

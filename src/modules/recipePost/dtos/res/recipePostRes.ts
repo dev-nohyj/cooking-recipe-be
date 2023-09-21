@@ -197,3 +197,47 @@ export class LikeRecipePostRes {
     })
     likeType: LikeTypeLabel;
 }
+
+export class GetPopularRecipePostsRes {
+    @ApiProperty({
+        default: [
+            {
+                id: 1,
+                title: '제목',
+                thumbnailUrl: 'https://thumbnail.com',
+                author: {
+                    nickname: 'nickname',
+                    profileImageUrl: 'https://profileImageUrl.com',
+                },
+                isLike: true,
+                likeCount: 0,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            },
+            {
+                id: 2,
+                title: '제목',
+                thumbnailUrl: 'https://thumbnail.com',
+                author: {
+                    nickname: 'nickname',
+                    profileImageUrl: 'https://profileImageUrl.com',
+                },
+                isLike: true,
+                likeCount: 0,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            },
+        ],
+        description: '레시피 게시물 리스트',
+    })
+    recipePostList: {
+        id: number;
+        title: string;
+        thumbnailUrl: string;
+        author: { nickname: string; profileImageUrl: string | null };
+        isLike: boolean;
+        likeCount: number;
+        createdAt: Date;
+        updatedAt: Date;
+    }[];
+}

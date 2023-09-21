@@ -28,6 +28,7 @@ import {
     LikeRecipePostRes,
     CreateRecipePostRes,
     DeleteRecipePostRes,
+    GetPopularRecipePostsRes,
 } from './dtos/res/recipePostRes';
 
 @Injectable()
@@ -598,5 +599,47 @@ export class RecipePostService {
         } catch (err) {
             throw new CustomError({ customError: customErrorLabel.DELETE_COMMENT_FAILURE.customError });
         }
+    }
+
+    async getPopularRecipePosts(userId: string | undefined): Promise<GetPopularRecipePostsRes> {
+        const recipePosts = await this.prismaDatabase.recipePost.findMany({
+            take: 10,
+            orderBy: [{ recipePostLikeUserRelation: { _count: 'desc' } }, { viewCount: 'desc' }],
+            select: {
+                id: true,
+                title: true,
+                thumbnailUrl: true,
+                createdAt: true,
+                updatedAt: true,
+                author: {
+                    select: {
+                        nickname: true,
+                        profileImageUrl: true,
+                    },
+                },
+                recipePostLikeUserRelation: {
+                    where: { userId },
+                },
+                _count: {
+                    select: {
+                        recipePostLikeUserRelation: true,
+                    },
+                },
+            },
+        });
+
+        const reply = recipePosts.map((v) => {
+            return {
+                id: v.id,
+                title: v.title,
+                thumbnailUrl: v.thumbnailUrl,
+                author: v.author,
+                isLike: !userId ? false : v.recipePostLikeUserRelation.length === 0 ? false : true,
+                likeCount: v._count.recipePostLikeUserRelation,
+                createdAt: v.createdAt,
+                updatedAt: v.updatedAt,
+            };
+        });
+        return { recipePostList: reply };
     }
 }

@@ -31,6 +31,7 @@ import {
     LikeRecipePostRes,
     CreateRecipePostRes,
     DeleteRecipePostRes,
+    GetPopularRecipePostsRes,
 } from './dtos/res/recipePostRes';
 
 @ApiTags(ApiTagLabel.recipePost)
@@ -133,5 +134,15 @@ export class RecipePostController {
     @Delete('comment')
     deleteComment(@Query() { commentId }: CommentIdArgs, @Session() session: CustomSession) {
         return this.recipePostService.deleteComment(commentId, session.userId);
+    }
+
+    @NoAuth()
+    @SwaggerReply({
+        summary: '인기 게시물 조회',
+        type: GetPopularRecipePostsRes,
+    })
+    @Get('popular')
+    getPopularRecipePosts(@Session() session: CustomSession) {
+        return this.recipePostService.getPopularRecipePosts(session.userId);
     }
 }

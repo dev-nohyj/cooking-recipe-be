@@ -13,6 +13,7 @@ import {
     DeleteFoodPostRes,
     GetFoodPostDetailRes,
     GetFoodPostsRes,
+    GetPopularFoodPostsRes,
     LikeFoodPostRes,
 } from './dtos/res/foodPostRes';
 
@@ -79,5 +80,15 @@ export class FoodPostController {
     @Patch('like')
     likeFoodPost(@Body() likeFoodPostArgs: LikeFoodPostArgs, @Session() session: CustomSession) {
         return this.foodPostService.likeFoodPost(likeFoodPostArgs, session.userId);
+    }
+
+    @NoAuth()
+    @SwaggerReply({
+        summary: '인기 게시물 조회',
+        type: GetPopularFoodPostsRes,
+    })
+    @Get('popular')
+    getPopularFoodPosts() {
+        return this.foodPostService.getPopularFoodPosts();
     }
 }

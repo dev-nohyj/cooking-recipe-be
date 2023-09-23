@@ -5,7 +5,7 @@
 <br/>
 <br/>
 
-<img src="https://github.com/dev-nohyj/cooking-recipe-fe/assets/141613226/a6dae52f-8bc7-4bb5-b89d-40ed42af3022" alt="img"  width="100%" height="auto">
+<img src="https://github.com/dev-nohyj/cooking-recipe-be/assets/141613226/d5cd6412-2f84-481f-85ef-bfc16672889a" alt="img"  width="100%" height="auto">
 
 ## 💬 프로젝트 소개
 
@@ -46,7 +46,7 @@
 <summary>API 요약 이미지</summary>
 <div markdown="1">
 
-<img src="https://github.com/dev-nohyj/cooking-recipe-fe/assets/141613226/9a5ee6e3-c04d-45e5-bf4d-9377819410b0" alt="img"  width="100%" height="auto">
+<img src="https://github.com/dev-nohyj/cooking-recipe-be/assets/141613226/1e748e4f-4ef3-4d87-9cfa-e571a6319bc7" alt="img"  width="100%" height="auto">
 
 </div>
 </details>

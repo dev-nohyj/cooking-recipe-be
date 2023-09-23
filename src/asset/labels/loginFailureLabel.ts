@@ -3,4 +3,5 @@ export const LoginFailureLabel = {
     dbFail: 102,
     dataEmpty: 103,
     providerFail: 104,
+    kakaoEmptyEmail: 105,
 };

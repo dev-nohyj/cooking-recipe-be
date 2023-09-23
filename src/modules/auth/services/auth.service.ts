@@ -28,7 +28,20 @@ export class AuthService {
         if (!user || !isNotEmptyObject(user)) {
             return { url: this.configService.get('CLIENT_URL') + `/loginFailure?code=${LoginFailureLabel.dataEmpty}` };
         }
+        if (user.provider === ProviderLabel.kakao && !user.email) {
+            const ACCESS_TOKEN = user.accessToken;
 
+            await axios({
+                method: 'post',
+                url: 'https://kapi.kakao.com/v1/user/unlink',
+                headers: {
+                    Authorization: `Bearer ${ACCESS_TOKEN}`,
+                },
+            });
+            return {
+                url: this.configService.get('CLIENT_URL') + `/loginFailure?code=${LoginFailureLabel.kakaoEmptyEmail}`,
+            };
+        }
         try {
             const existingUser = await this.prismaDatabase.user.findUnique({
                 where: { email: user.email },

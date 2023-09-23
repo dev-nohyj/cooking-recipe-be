@@ -6,11 +6,6 @@ import { LikeTypeLabel } from 'src/asset/labels/common';
 import { InjectRedis, Redis } from '@nestjs-modules/ioredis';
 import { redisPrefix } from 'src/asset/prefix';
 import {
-    GetRecipeCommentListArgs,
-    ModifyRecipeCommentArgs,
-    CreateRecipeCommentArgs,
-} from './dtos/args/recipeCommentArgs';
-import {
     GetRecipePostCommentRes,
     ModifyRecipePostCommentRes,
     DeleteRecipePostCommentRes,
@@ -21,6 +16,9 @@ import {
     ModifyRecipePostArgs,
     CreateRecipePostArgs,
     LikeRecipePostArgs,
+    GetRecipeCommentListArgs,
+    CreateRecipeCommentArgs,
+    ModifyRecipeCommentArgs,
 } from './dtos/args/recipePostArgs';
 import {
     GetRecipePostsRes,

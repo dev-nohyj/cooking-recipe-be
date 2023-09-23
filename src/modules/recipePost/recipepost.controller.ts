@@ -6,12 +6,6 @@ import { CustomSession } from 'express-session';
 import { RecipePostService } from './recipepost.service';
 import { RecipePostIdArgs } from './dtos/args/commonArgs';
 import { NoAuth } from 'src/decorators/noAuth.decorators';
-import {
-    CommentIdArgs,
-    CreateRecipeCommentArgs,
-    GetRecipeCommentListArgs,
-    ModifyRecipeCommentArgs,
-} from './dtos/args/recipeCommentArgs';
 import { Request } from 'express';
 import {
     CreateRecipePostCommentRes,
@@ -24,6 +18,10 @@ import {
     ModifyRecipePostArgs,
     CreateRecipePostArgs,
     LikeRecipePostArgs,
+    GetRecipeCommentListArgs,
+    CreateRecipeCommentArgs,
+    ModifyRecipeCommentArgs,
+    CommentIdArgs,
 } from './dtos/args/recipePostArgs';
 import {
     GetRecipePostsRes,

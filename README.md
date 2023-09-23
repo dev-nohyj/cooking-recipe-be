@@ -5,7 +5,7 @@
 <br/>
 <br/>
 
-<!-- ![image](url) -->
+<img src="https://github.com/dev-nohyj/cooking-recipe-fe/assets/141613226/a6dae52f-8bc7-4bb5-b89d-40ed42af3022" alt="img"  width="100%" height="auto">
 
 ## 💬 프로젝트 소개
 
@@ -42,8 +42,18 @@
 ## API DOCS
 
 -   swagger를 사용하여 관리하고 있으며, 개발 환경에서만 열람이 가능하게 처리
-    <br/>
-    <br/>
+<details>
+<summary>API 요약 이미지</summary>
+<div markdown="1">
+
+<img src="https://github.com/dev-nohyj/cooking-recipe-fe/assets/141613226/9a5ee6e3-c04d-45e5-bf4d-9377819410b0" alt="img"  width="100%" height="auto">
+
+</div>
+</details>
+    
+    
+<br/>
+<br/>
 
 ## 💡 사용 및 환경 변수
 

@@ -1,6 +1,6 @@
 <h1>🍖 Food Share | 음식에 대한 정보 Food Share에서!</h1>
 
-<h4><a href="https://www.foodshare.shop" target="_blank">사이트 바로가기</a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/dev-nohyj/cooking-recipe-fe" target="_blank">프론트엔드 Repository</a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/dev-nohyj/cooking-recipe-be" target="_blank">백엔드 Repository</a></h4>
+<h4><a href="https://www.foodshare.shop" target="_blank"><s>사이트 바로가기</s></a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/dev-nohyj/cooking-recipe-fe" target="_blank">프론트엔드 Repository</a>&nbsp;&nbsp;&nbsp;<a href="https://github.com/dev-nohyj/cooking-recipe-be" target="_blank">백엔드 Repository</a></h4>
 
 <br/>
 <br/>
